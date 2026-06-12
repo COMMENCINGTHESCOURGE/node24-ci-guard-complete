@@ -1,0 +1,47 @@
+name: Attribution Style Guard
+
+on:
+  push:
+    branches: [main, master]
+  pull_request:
+    branches: [main, master]
+
+permissions:
+  contents: read
+
+jobs:
+  attribution-lint:
+    runs-on: ubuntu-latest
+    timeout-minutes: 5
+
+    steps:
+      - name: Checkout
+        uses: actions/checkout@v4
+        persist-credentials: false
+
+      - name: Setup Node
+        uses: actions/setup-node@v4
+        with:
+          node-version: '24'
+          cache: 'npm'
+
+      - name: Install toolchain
+        run: npm ci
+
+      - name: Scan docs/code for colonial discovery framing
+        env:
+          ATTRIBUTION_GUARD: on
+        run: |
+          node ../../node24-ci-guard-complete/tools/attribution-style-guard/src/index.js \
+            --roots . \
+            --fail-on-find \
+            --glob '**/*.md' \
+            --glob '**/*.yml' \
+            --glob '**/*.yaml' \
+            --glob '**/*.ts' \
+            --glob '**/*.tsx' \
+            --glob '**/*.js' \
+            --glob '**/*.jsx' \
+            --exclude '**/node_modules/**' \
+            --exclude '**/dist/**' \
+            --exclude '**/coverage/**'
